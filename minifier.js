@@ -1,4 +1,7 @@
 namespace("com.subnodal.nanoplay.webapi.minifier", function(exports) {
+    // Source: https://cdn.jsdelivr.net/npm/terser@5.5.1/dist/bundle.min.js
+    // Added changes: Object.assign(exports, global.Terser);
+
     (function (global, factory) {
         typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('source-map')) :
         typeof define === 'function' && define.amd ? define(['exports', 'source-map'], factory) :
@@ -26835,6 +26838,4 @@ namespace("com.subnodal.nanoplay.webapi.minifier", function(exports) {
         exports._run_cli = run_cli;
         exports.minify = minify;
     })));
-
-    console.log(this);
 });

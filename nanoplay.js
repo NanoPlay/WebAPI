@@ -1,6 +1,7 @@
 namespace("com.subnodal.nanoplay.webapi", function(exports) {
     var ble = require("com.subnodal.nanoplay.webapi.ble");
     var minifier = require("com.subnodal.nanoplay.webapi.minifier");
+    var safety = require("com.subnodal.nanoplay.webapi.safety");
 
     exports.NotSupportedError = class extends Error {};
 
@@ -125,18 +126,19 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                 throw new NotSupportedError("Please update your NanoPlay to V0.2.2 or later");
             }
 
-            return minifier.minify(code).then(function(minifiedResult) {
+            return minifier.minify(safety.makeSafe(code), {mangle: true}).then(function(minifiedResult) {
                 code = minifiedResult.code;
             
-                return thisScope.connection.evaluate([
+                return thisScope.connection.communicate(";eval(\`" + [
                     `clearTimeout(require("main").rootScreenLoop);`,
                     `LED.write(require("config").properties.backlight);`,
                     `Pixl.setLCDPower(true);`,
                     `require("main").preventOpening();`,
                     `require("display").clear();`,
                     `require("display").drawCharsFromCell(require("l10n").translate("uploading"), 0, 1);`,
+                    `require("ui").drawStatusBar();`,
                     `require("display").render();`
-                ].join(""));
+                ].join("") + "\`)\n");
             }).then(function() {
                 return thisScope.connection.evaluate([
                     `require("Storage").write(\`${id}.np\`, atob(\`${btoa(code)}\`));`,

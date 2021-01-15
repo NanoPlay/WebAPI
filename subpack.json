@@ -4,6 +4,7 @@
     "modules": [
         "nanoplay.js",
         "ble.js",
-        "minifier.js"
+        "minifier.js",
+        "safety.js"
     ]
 }
