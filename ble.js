@@ -204,7 +204,6 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             });
         }
 
-        // TODO: Change this to resolve a Promise instead of call a callback
         communicate(data, progressCallback = function() {}) {
             var thisScope = this;
 
