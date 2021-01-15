@@ -5,6 +5,7 @@
         "nanoplay.js",
         "ble.js",
         "minifier.js",
-        "safety.js"
+        "safety.js",
+        "icon.js"
     ]
 }

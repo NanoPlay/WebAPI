@@ -6,7 +6,13 @@
         <script src="/ble.js"></script>
         <script src="/minifier.js"></script>
         <script src="/safety.js"></script>
+        <script src="/icon.js"></script>
         <script src="/nanoplay.js"></script>
+        <script src="script.js"></script>
     </head>
-    <body></body>
+    <body>
+        <button onclick="uploadTestApp();" id="uploadTestAppButton">Upload test app</button>
+        <button onclick="removeTestApp();" id="removeTestAppButton">Remove test app</button>
+        <p id="status">Disconnected</p>
+    </body>
 </html>

@@ -3,7 +3,9 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
     const BLE_RX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
     const BLE_TX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
     const CHUNK_SIZE = 20;
-    const DATA_TIMEOUT = 100;
+    const DATA_TIMEOUT = 200;
+
+    var characteristicValueChangeHandler;
 
     function stringToArrayBuffer(string) {
         var buffer = new ArrayBuffer(string.length);
@@ -88,24 +90,29 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                     return service.getCharacteristic(BLE_RX);
                 }).then(function(characteristic) {
                     thisScope.bleRxCharacteristic = characteristic;
-    
-                    characteristic.addEventListener("characteristicvaluechanged", function(event) {
-                        var dataView = event.target.value;
-    
-                        for (var i = 0; i < dataView.length; i++) {
-                            var byte = dataView.getUint8(i);
-    
-                            if (byte == 0x11) { // XON
-                                thisScope.bleFlowXoff = false;
-                            } else if (byte == 0x13) { // XOFF
-                                thisScope.bleFlowXoff = true;
+
+                    if (!characteristicValueChangeHandler) {
+                        characteristicValueChangeHandler = function(event) {
+                            var dataView = event.target.value;
+        
+                            for (var i = 0; i < dataView.length; i++) {
+                                var byte = dataView.getUint8(i);
+        
+                                if (byte == 0x11) { // XON
+                                    thisScope.bleFlowXoff = false;
+                                } else if (byte == 0x13) { // XOFF
+                                    thisScope.bleFlowXoff = true;
+                                }
                             }
+        
+                            var dataString = arrayBufferToString(dataView.buffer);
+
+                            thisScope.rxData += dataString;
                         }
-    
-                        var dataString = arrayBufferToString(dataView.buffer);
-    
-                        thisScope.rxData += dataString;
-                    });
+                    }
+
+                    thisScope.bleRxCharacteristic.removeEventListener("characteristicvaluechanged", characteristicValueChangeHandler);    
+                    thisScope.bleRxCharacteristic.addEventListener("characteristicvaluechanged", characteristicValueChangeHandler);
     
                     return characteristic.startNotifications();
                 }).then(function() {
@@ -147,6 +154,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
         write(data, progressCallback = function() {}) {
             var thisScope = this;
 
+            this.rxData = "";
             this.isBusy = true;
 
             return new Promise(function(resolve, reject) {
@@ -215,8 +223,6 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                 throw new exports.ConnectionError("Please connect to your NanoPlay first");
             }
 
-            this.rxData = "";
-
             return new Promise(function(resolve, reject) {
                 if (thisScope.isBusy) {
                     setTimeout(function() {
@@ -256,12 +262,18 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             }
 
             return new Promise(function(resolve, reject) {
+                thisScope.rxData = "";
+
                 thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
                     try {
                         var jsonData = "";
-                        
+
                         if (data.trim().split("\n").length > 1) {
-                            jsonData = atob(data.trim().split("\n")[1].trim());
+                            if (data.trim().split("\n")[0] == "") {
+                                data = data.trim().split("\n").slice(1).join("\n");
+                            }
+
+                            jsonData = atob(data.split("print(btoa(JSON.stringify(eval(atob(")[1].split("\n")[1].trim());
                         } else {
                             resolve(undefined);
 

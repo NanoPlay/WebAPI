@@ -16,11 +16,21 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
         connect() {
             var thisScope = this;
 
+            thisScope.connection.rxData = "";
+
             return this.connection.connect().then(function() {
                 return thisScope.connection.evaluate(`[require("config").OS_VERSION, require("config").OS_VERNUM]`);
             }).then(function(versionInfo) {
                 thisScope.version = versionInfo[0];
                 thisScope.versionNumber = versionInfo[1];
+
+                return new Promise(function(resolve, reject) {
+                    setTimeout(function() {
+                        thisScope.connection.rxData = "";
+
+                        resolve();
+                    }, 1000);
+                });
             });
         }
 
@@ -62,8 +72,6 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                         (function(i) {
                             promiseChain = promiseChain.then(function() {
                                 return thisScope.connection.evaluate(`require("Storage").read(\`${list[i]}\`);`).then(function(data) {
-                                    console.log(data, list[i]);
-
                                     appList.push({
                                         id: list[i].split(".")[0],
                                         manifest: JSON.parse(data)
