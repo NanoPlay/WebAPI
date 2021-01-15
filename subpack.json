@@ -3,6 +3,7 @@
     "outname": "nanoplay",
     "modules": [
         "nanoplay.js",
-        "ble.js"
+        "ble.js",
+        "minifier.js"
     ]
 }

@@ -1,5 +1,6 @@
 namespace("com.subnodal.nanoplay.webapi", function(exports) {
     var ble = require("com.subnodal.nanoplay.webapi.ble");
+    var minifier = require("com.subnodal.nanoplay.webapi.minifier");
 
     exports.NotSupportedError = class extends Error {};
 
@@ -39,13 +40,51 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
         }
 
         getSystemDate() {
-            return this.connection.evaluate(`new Date().getTime()`).then(function(timestamp) {
+            return this.connection.evaluate(`new Date().getTime();`).then(function(timestamp) {
                 return new Date(timestamp);
             });
         }
 
         setSystemDate(date = new Date()) {
             return this.connection.evaluate(`setTime(${date.getTime() / 1000});`);
+        }
+
+        getApps() {
+            var thisScope = this;
+
+            return this.connection.evaluate(`require("Storage").list();`).then(function(list) {
+                var appList = [];
+                var promiseChain = Promise.resolve();
+
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].endsWith(".npm")) {
+                        (function(i) {
+                            promiseChain = promiseChain.then(function() {
+                                return thisScope.connection.evaluate(`require("Storage").read(\`${list[i]}\`);`).then(function(data) {
+                                    console.log(data, list[i]);
+
+                                    appList.push({
+                                        id: list[i].split(".")[0],
+                                        manifest: JSON.parse(data)
+                                    });
+                                });
+                            });
+                        })(i);
+                    }
+                }
+
+                promiseChain = promiseChain.then(function() {
+                    var apps = {};
+
+                for (var i = 0; i < appList.length; i++) {
+                    apps[appList[i].id] = appList[i].manifest;
+                }
+
+                return apps;
+                });
+
+                return promiseChain;
+            });
         }
 
         uploadApp(code, manifest) {
@@ -86,15 +125,19 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                 throw new NotSupportedError("Please update your NanoPlay to V0.2.2 or later");
             }
 
-            return this.connection.evaluate([
-                `clearTimeout(require("main").rootScreenLoop);`,
-                `LED.write(require("config").properties.backlight);`,
-                `Pixl.setLCDPower(true);`,
-                `require("main").preventOpening();`,
-                `require("display").clear();`,
-                `require("display").drawCharsFromCell(require("l10n").translate("uploading"), 0, 1);`,
-                `require("display").render();`
-            ].join("")).then(function() {
+            return minifier.minify(code).then(function(minifiedResult) {
+                code = minifiedResult.code;
+            
+                return thisScope.connection.evaluate([
+                    `clearTimeout(require("main").rootScreenLoop);`,
+                    `LED.write(require("config").properties.backlight);`,
+                    `Pixl.setLCDPower(true);`,
+                    `require("main").preventOpening();`,
+                    `require("display").clear();`,
+                    `require("display").drawCharsFromCell(require("l10n").translate("uploading"), 0, 1);`,
+                    `require("display").render();`
+                ].join(""));
+            }).then(function() {
                 return thisScope.connection.evaluate([
                     `require("Storage").write(\`${id}.np\`, atob(\`${btoa(code)}\`));`,
                     `require("Storage").write(\`${id}.npm\`, atob(\`${btoa(JSON.stringify(manifest))}\`));`
@@ -104,7 +147,20 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                     `require("Storage").compact();`,
                     `reset();`
                 ].join(""));
+            }).then(function() {
+                return id;
             });
+        }
+
+        removeApp(id) {
+            return this.connection.evaluate([
+                `clearTimeout(require("main").rootScreenLoop);`,
+                `require("main").preventOpening();`,
+                `require("Storage").erase(\`${id}.np\`);`,
+                `require("Storage").erase(\`${id}.npm\`);`,
+                `require("Storage").compact();`,
+                `reset();`
+            ].join(""));
         }
     };
 });

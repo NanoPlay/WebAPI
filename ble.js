@@ -3,7 +3,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
     const BLE_RX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
     const BLE_TX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
     const CHUNK_SIZE = 20;
-    const DATA_TIMEOUT = 300;
+    const DATA_TIMEOUT = 100;
 
     function stringToArrayBuffer(string) {
         var buffer = new ArrayBuffer(string.length);
@@ -220,17 +220,23 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             return new Promise(function(resolve, reject) {
                 if (thisScope.isBusy) {
                     setTimeout(function() {
-                        thisScope.communicate(data, callback, progressCallback);
+                        thisScope.communicate(data, progressCallback).then(resolve);
                     }, 100);
     
                     return;
                 }
     
                 thisScope.write(data, progressCallback).then(function() {
-                    var callbackStart = new Date().getTime();
+                    var timeoutStart = new Date().getTime();
+                    var lastData = thisScope.rxData;
     
                     setTimeout(function timeout() {
-                        if (new Date().getTime() - callbackStart < DATA_TIMEOUT) {
+                        if (thisScope.rxData != lastData) {
+                            timeoutStart = new Date().getTime();
+                            lastData = thisScope.rxData;
+
+                            setTimeout(timeout, 10);
+                        } else if (new Date().getTime() - timeoutStart < DATA_TIMEOUT) {
                             setTimeout(timeout, 10);
                         } else {
                             resolve(thisScope.rxData);
