@@ -205,49 +205,54 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
         }
 
         // TODO: Change this to resolve a Promise instead of call a callback
-        communicate(data, callback = function() {}, progressCallback = function() {}) {
+        communicate(data, progressCallback = function() {}) {
             var thisScope = this;
 
             if (!this.isOpen) {
                 throw new exports.ConnectionError("Please connect to your NanoPlay first");
             }
 
-            if (this.isBusy) {
-                setTimeout(function() {
-                    thisScope.communicate(data, callback, progressCallback);
-                }, 100);
-
-                return;
-            }
-
-            this.write(data, progressCallback).then(function() {
-                var callbackStart = new Date().getTime();
-
-                setTimeout(function timeout() {
-                    if (new Date().getTime() - callbackStart < DATA_TIMEOUT) {
-                        setTimeout(timeout, 10);
-                    } else {
-                        callback(thisScope.rxData);
-
-                        thisScope.rxData = "";
-                    }
-                }, 10);
+            return new Promise(function(resolve, reject) {
+                if (thisScope.isBusy) {
+                    setTimeout(function() {
+                        thisScope.communicate(data, callback, progressCallback);
+                    }, 100);
+    
+                    return;
+                }
+    
+                thisScope.write(data, progressCallback).then(function() {
+                    var callbackStart = new Date().getTime();
+    
+                    setTimeout(function timeout() {
+                        if (new Date().getTime() - callbackStart < DATA_TIMEOUT) {
+                            setTimeout(timeout, 10);
+                        } else {
+                            resolve(thisScope.rxData);
+    
+                            thisScope.rxData = "";
+                        }
+                    }, 10);
+                });
             });
         }
 
-        // TODO: Change this to resolve a Promise instead of call a callback
-        evaluate(expression, callback = function() {}, progressCallback = function() {}) {
+        evaluate(expression, progressCallback = function() {}) {
+            var thisScope = this;
+
             if (!this.isOpen) {
                 throw new exports.ConnectionError("Please connect to your NanoPlay first");
             }
 
-            this.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, function(data) {
-                try {
-                    callback(JSON.parse(atob(data.split("\n")[1].trim())));
-                } catch (e) {
-                    console.warn(`Couldn't decode evaluated result: ${e}`);
-                }
-            }, progressCallback);
+            return new Promise(function(resolve, reject) {
+                thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
+                    try {
+                        resolve(JSON.parse(atob(data.split("\n")[1].trim())));
+                    } catch (e) {
+                        console.warn(`Couldn't decode evaluated result: ${e}`);
+                    }
+                });
+            });
         }
     };
 });
