@@ -1,0 +1,8 @@
+{
+    "identifier": "com.subnodal.nanoplay.webapi",
+    "outname": "nanoplay",
+    "modules": [
+        "nanoplay.js",
+        "ble.js"
+    ]
+}
