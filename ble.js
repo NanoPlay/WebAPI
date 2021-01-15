@@ -204,6 +204,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             });
         }
 
+        // TODO: Change this to resolve a Promise instead of call a callback
         communicate(data, callback = function() {}, progressCallback = function() {}) {
             var thisScope = this;
 
@@ -234,6 +235,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             });
         }
 
+        // TODO: Change this to resolve a Promise instead of call a callback
         evaluate(expression, callback = function() {}, progressCallback = function() {}) {
             if (!this.isOpen) {
                 throw new exports.ConnectionError("Please connect to your NanoPlay first");
