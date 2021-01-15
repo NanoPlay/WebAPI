@@ -215,6 +215,8 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                 throw new exports.ConnectionError("Please connect to your NanoPlay first");
             }
 
+            this.rxData = "";
+
             return new Promise(function(resolve, reject) {
                 if (thisScope.isBusy) {
                     setTimeout(function() {
@@ -250,7 +252,15 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             return new Promise(function(resolve, reject) {
                 thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
                     try {
-                        var jsonData = atob(data.trim().split("\n")[1].trim());
+                        var jsonData = "";
+                        
+                        if (data.trim().split("\n").length > 1) {
+                            jsonData = atob(data.trim().split("\n")[1].trim());
+                        } else {
+                            resolve(undefined);
+
+                            return;
+                        }
 
                         if (jsonData == "undefined") {
                             resolve(undefined);
