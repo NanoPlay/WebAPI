@@ -42,6 +42,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                 throw new exports.SystemSupportError("Your system does not support Web Bluetooth");
             }
 
+            this.bleDevice = null;
             this.bleServer = null;
             this.bleService = null;
             this.bleRxCharacteristic = null;
@@ -70,6 +71,8 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                     ],
                     optionalServices: [BLE_SERVICE]
                 }).then(function(device) {
+                    thisScope.bleDevice = device;
+
                     device.addEventListener("gattserverdisconnected", function() {
                         thisScope.disconnect();
                     });
@@ -132,6 +135,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
                 this.bleServer.disconnect();
             }
 
+            this.bleDevice = null;
             this.bleServer = null;
             this.bleRxCharacteristic = null;
             this.bleTxCharacteristic = null;
@@ -246,9 +250,15 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             return new Promise(function(resolve, reject) {
                 thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
                     try {
-                        resolve(JSON.parse(atob(data.split("\n")[1].trim())));
+                        var jsonData = atob(data.trim().split("\n")[1].trim());
+
+                        if (jsonData == "undefined") {
+                            resolve(undefined);
+                        } else {
+                            resolve(JSON.parse(jsonData));
+                        }
                     } catch (e) {
-                        console.warn(`Couldn't decode evaluated result: ${e}`);
+                        console.warn(`Couldn't decode evaluated result: ${e}\nData: ${data.trim()}`);
                     }
                 });
             });
