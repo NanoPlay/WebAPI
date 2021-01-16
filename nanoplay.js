@@ -1,3 +1,12 @@
+/*
+    NanoPlay Web API
+
+    Copyright (C) Subnodal Technologies. All Rights Reserved.
+
+    https://nanoplay.subnodal.com
+    Licenced by the Subnodal Open-Source Licence, which can be found at LICENCE.md.
+*/
+
 namespace("com.subnodal.nanoplay.webapi", function(exports) {
     var ble = require("com.subnodal.nanoplay.webapi.ble");
     var minifier = require("com.subnodal.nanoplay.webapi.minifier");

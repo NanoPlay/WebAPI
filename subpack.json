@@ -6,6 +6,7 @@
         "ble.js",
         "minifier.js",
         "safety.js",
-        "icon.js"
+        "icon.js",
+        "updates.js"
     ]
 }
