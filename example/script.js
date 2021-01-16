@@ -96,7 +96,7 @@ function setSystemTime() {
     }).catch(function(error) {
         console.error(error);
 
-        document.getElementById("status").innerText = "An error occurred! Try updating again";
+        document.getElementById("status").innerText = "An error occurred! Try setting again";
         enable();
     });
 }
