@@ -1,3 +1,12 @@
+/*
+    NanoPlay Web API
+
+    Copyright (C) Subnodal Technologies. All Rights Reserved.
+
+    https://nanoplay.subnodal.com
+    Licenced by the Subnodal Open-Source Licence, which can be found at LICENCE.md.
+*/
+
 namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
     const BLE_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
     const BLE_RX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";

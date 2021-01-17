@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>NanoPlay Web API Example</title>
+        <script src="https://cdn.subnodal.com/lib/submodules.min.js"></script>
+        <script src="/ble.js"></script>
+        <script src="/minifier.js"></script>
+        <script src="/safety.js"></script>
+        <script src="/icon.js"></script>
+        <script src="/updates.js"></script>
+        <script src="/nanoplay.js"></script>
+        <script src="script.js"></script>
+    </head>
+    <body>
+        <button onclick="uploadTestApp();" id="uploadTestAppButton">Upload test app</button>
+        <button onclick="removeTestApp();" id="removeTestAppButton">Remove test app</button>
+        <button onclick="setSystemTime();" id="setSystemTimeButton">Set system time</button>
+        <br><br>
+        <input type="file" id="updateInput"><button onclick="updateSystem();" id="updateButton">Apply update</button>
+        <p id="status">Disconnected</p>
+    </body>
+</html>
