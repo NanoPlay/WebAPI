@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>NanoPlay Web API Example</title>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.subnodal.com/lib/submodules.min.js"></script>
+        <script src="/ble.js"></script>
+        <script src="/minifier.js"></script>
+        <script src="/safety.js"></script>
+        <script src="/icon.js"></script>
+        <script src="/nanoplay.js"></script>
+        <script src="script.js"></script>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;700&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="importBackground" style="display: none;">
+            <div class="import">
+                <p class="uploadTitle">Drag or select a .nano.js or .nm file:</p>
+                <input type="file" name="file" id="file" class="fileInput"/><br>
+                <a class="importCancel" href="javascript:$('.importBackground').fadeOut();">Cancel</a>
+            </div>
+        </div>
+        <header>
+            <!--Low-quality placeholder image until a clean SVG is created-->
+            <span class="title"><img src="src/nanoplaywhite.svg" alt="NanoPlay" class="headerLogo"/></span>
+        </header>
+        <main>
+            <span class="editing">Editing <input type="text" id="appNameInput" value="Test App"/></span><br>
+            <div class="left">
+                <span class="codeWrapper"><span class="codeTitle">Code</span><a class="uploadButton" href="javascript:$('.importBackground').fadeIn();"><i class="material-icons upload">upload</i></a></span><br>
+                <textarea class="codeinput" id="code">
+function loop() {
+    text(20,10,"It works!");
+    text(20,30,"Thanks for uploading");
+    text(20,40,"me!")
+}</textarea><br>
+                <span class="codeWrapper"><span class="codeTitle">App Info</span><a class="uploadButton" href="javascript:$('.importBackground').fadeIn();"><i class="material-icons upload">upload</i></a></span><br>
+                <div id="manifest" class="manifest">
+                    <span>Name (En): </span><input type="text" id="name" class="manifestSettings" value="Test App"/><br>
+                    <span>Name (Fr): </span><input type="text" id="nameFrench" class="manifestSettings" value="Tester l'app"/><br>
+                    <span>ID: </span><input type="text" id="appId" class="manifestSettings" value="test"/><br>
+                </div>
+            </div>
+            <div class="right">
+                <span class="codeTitle">Test</span><br>
+                <a class="button first" href="javascript:uploadViaBluetooth();"><span>Upload via Bluetooth </span><i class="material-icons buttonIcon">send</i></a><br><br>
+                <span class="codeTitle">Export</span><br>
+                <a class="button first" href="javascript:exportApp();"><span>Download code as .nano.js file </span><i class="material-icons buttonIcon">download</i></a><br>
+                <a class="button second" href="javascript:exportManifest();"><span>Download manifest as .nm file </span><i class="material-icons buttonIcon">download</i></a><br><br>
+            </div>
+        </main>
+        <!--<button onclick="uploadTestApp();" id="uploadTestAppButton">Upload test app</button>
+        <button onclick="removeTestApp();" id="removeTestAppButton">Remove test app</button>
+        <p id="status">Disconnected</p>-->
+    </body>
+</html>
