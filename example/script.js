@@ -31,7 +31,11 @@ function exportManifest() {
 }
 
 function uploadViaBluetooth() {
+    document.getElementById("bluetoothUploadText").innerText = "Connecting...";
+    $('#bluetoothIcon').text('bluetooth');
     np.connect().then(function() {
+        document.getElementById("bluetoothUploadText").innerText = `Connected to ${np.name}! Uploading...`;
+        $('#bluetoothIcon').text('upload');
         np.uploadApp($('#code').val(), {
             id: $('#appId').val(),
             name: {
@@ -39,11 +43,27 @@ function uploadViaBluetooth() {
                 fr_FR: $('#nameFrench').val()
             },
             icon: testIcon
-        });
+        }).then(function() {
+            document.getElementById("bluetoothUploadText").innerText = "Uploaded!";
+            $('#bluetoothIcon').text('done');
+            setTimeout(
+                function() 
+                {
+                    document.getElementById("bluetoothUploadText").innerText = "Upload via Bluetooth";
+                    $('#bluetoothIcon').text('send');
+                }, 2000);
+            });
     }).catch(function(error) {
         console.error(error);
-    });
-}
+        document.getElementById("bluetoothUploadText").innerText = "Error uploading, Check console for more info";
+        setTimeout(
+            function() 
+            {
+                document.getElementById("bluetoothUploadText").innerText = "Upload via Bluetooth";
+                $('#bluetoothIcon').text('send');
+            }, 2000);
+        });
+    };
 
 function download(filename, text) {
     var element = document.createElement('a');
