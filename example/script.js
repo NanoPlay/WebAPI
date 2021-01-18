@@ -146,6 +146,53 @@ function uploadTestApp() {
     });
 }
 
+function aboutNanoplay() {
+    np.connect().then(function() {
+        $('.connectText').text("Connected");
+        $('#connectIcon').text('check');
+        $('#connectButton').css("background-color", "#13ad13");
+        $('.onConnect').fadeIn();
+        $('.right').fadeIn();
+        $('.nanoplayName').text(np.name);
+        $('.nanoplayVersion').text(np.version);
+    }).catch(function(error) {
+        console.error(error);
+        $('.connectText').text("An Error Occured");
+        $('#connectIcon').text('error');
+        $('#connectButton').css("background-color", "#ff0000");
+        setTimeout(
+            function() 
+            {
+                $('.connectText').text("Connect your Nanoplay");
+                $('#connectIcon').text('bluetooth');
+                $('#connectButton').css("background-color", "#4b81f0");
+            }, 2000);
+        });
+    };
+
+function connectNanoplay() {
+    np.connect().then(function() {
+        $('.connectText').text("Connected");
+        $('#connectIcon').text('check');
+        $('#connectButton').css("background-color", "#13ad13");
+        $('.onConnect').fadeIn();
+        $('.right').fadeIn();
+        updateAppList();
+    }).catch(function(error) {
+        console.error(error);
+        $('.connectText').text("An Error Occured");
+        $('#connectIcon').text('error');
+        $('#connectButton').css("background-color", "#ff0000");
+        setTimeout(
+            function() 
+            {
+                $('.connectText').text("Connect your Nanoplay");
+                $('#connectIcon').text('bluetooth');
+                $('#connectButton').css("background-color", "#4b81f0");
+            }, 2000);
+        });
+    };
+
 function removeTestApp() {
     document.getElementById("status").innerText = "Connecting...";
     disable();
@@ -167,6 +214,10 @@ function removeTestApp() {
 
 function updateProgress(i, total, file) {
     document.getElementById("status").innerHTML = `Updating (${Math.round((i / total) * 100)}%, uploading file <code>${file}</code>)...`;
+}
+
+function updateSystemTime() {
+    np.setSystemDate();
 }
 
 function setSystemTime() {
@@ -207,6 +258,13 @@ function updateSystem() {
     });
 }
 
+function updateSystemFunction() {
+    updates.applyUpdateFiles(JSON.parse(updateFileData), np, updateProgress).then(function() {
+        $('.nanoplayName').text(np.name);
+        $('.nanoplayVersion').text(np.version);
+    });
+}
+
 addEventListener("load", function() {
     document.getElementById("updateInput").addEventListener("change", function() {
         if (this.files.length > 0) {
@@ -220,3 +278,8 @@ addEventListener("load", function() {
         }
     });
 });
+
+function updateAppList() {
+    var appsList = np.getApps();
+    console.log(appsList);
+}

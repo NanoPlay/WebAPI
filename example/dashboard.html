@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>NanoPlay Editor</title>
+        <title>NanoPlay Dashboard</title>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.subnodal.com/lib/submodules.min.js"></script>
         <script src="/ble.js"></script>
@@ -31,28 +31,20 @@
             </div>
         </header>
         <main>
-            <span class="editing">Editing <input type="text" id="appNameInput" value="Test App"/></span><br>
-            <div class="left">
-                <span class="codeWrapper"><span class="codeTitle">Code</span><a class="uploadButton" href="javascript:$('.importBackground').fadeIn();"><i class="material-icons upload">upload</i></a></span><br>
-                <textarea class="codeinput" id="code">
-function loop() {
-    text(20,10,"It works!");
-    text(20,30,"Thanks for uploading");
-    text(20,40,"me!")
-}</textarea><br>
-                <span class="codeWrapper"><span class="codeTitle">App Info</span><a class="uploadButton" href="javascript:$('.importBackground').fadeIn();"><i class="material-icons upload">upload</i></a></span><br>
-                <div id="manifest" class="manifest">
-                    <span>Name (En): </span><input type="text" id="name" class="manifestSettings" value="Test App"/><br>
-                    <span>Name (Fr): </span><input type="text" id="nameFrench" class="manifestSettings" value="Tester l'app"/><br>
-                    <span>ID: </span><input type="text" id="appId" class="manifestSettings" value="test"/><br>
+            <span class="pageTitle">Dashboard</span>
+            <div class="panes">
+                <div class="pane" onclick="window.location.href = 'about.html';">
+                    <i class="material-icons paneIcon">info</i><br>
+                    <span class="paneName">About your Nanoplay</span>
                 </div>
-            </div>
-            <div class="right">
-                <span class="codeTitle">Test</span><br>
-                <a class="button first" href="javascript:uploadViaBluetooth();"><span id="bluetoothUploadText">Upload via Bluetooth </span><i class="material-icons buttonIcon" id="bluetoothIcon">send</i></a><br><br>
-                <span class="codeTitle">Export</span><br>
-                <a class="button first" href="javascript:exportApp();"><span>Download code as .nano.js file </span><i class="material-icons buttonIcon">download</i></a><br>
-                <a class="button second" href="javascript:exportManifest();"><span>Download manifest as .nm file </span><i class="material-icons buttonIcon">download</i></a><br><br>
+                <div class="pane" onclick="window.location.href = 'editor.html';">
+                    <i class="material-icons paneIcon">code</i><br>
+                    <span class="paneName">Program Editor</span>
+                </div>
+                <div class="pane" onclick="window.location.href = 'apps.html';">
+                    <i class="material-icons paneIcon">apps</i><br>
+                    <span class="paneName">Apps List</span>
+                </div>
             </div>
         </main>
         <footer>
