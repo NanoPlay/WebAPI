@@ -3,6 +3,7 @@ var updates = require("com.subnodal.nanoplay.webapi.updates");
 var np = new nanoplay.NanoPlay();
 
 var updateFileData = "";
+var streamInterval = null;
 
 var testIcon = require("com.subnodal.nanoplay.webapi.icon").create(`
 
@@ -17,6 +18,8 @@ function disable() {
     document.getElementById("uploadTestAppButton").disabled = true;
     document.getElementById("removeTestAppButton").disabled = true;
     document.getElementById("setSystemTimeButton").disabled = true;
+    document.getElementById("systemStatusButton").disabled = true;
+    document.getElementById("streamScreenButton").disabled = true;
     document.getElementById("updateButton").disabled = true;
 }
 
@@ -24,6 +27,8 @@ function enable() {
     document.getElementById("uploadTestAppButton").disabled = false;
     document.getElementById("removeTestAppButton").disabled = false;
     document.getElementById("setSystemTimeButton").disabled = false;
+    document.getElementById("systemStatusButton").disabled = false;
+    document.getElementById("streamScreenButton").disabled = false;
     document.getElementById("updateButton").disabled = false;
 }
 
@@ -262,6 +267,80 @@ function updateSystemFunction() {
     updates.applyUpdateFiles(JSON.parse(updateFileData), np, updateProgress).then(function() {
         $('.nanoplayName').text(np.name);
         $('.nanoplayVersion').text(np.version);
+    });
+}
+
+function getSystemStatus() {
+    document.getElementById("status").innerText = "Connecting...";
+    disable();
+
+    np.connect().then(function() {
+        document.getElementById("status").innerText = `Connected to ${np.name}, V${np.version}! Getting status...`;
+
+        var freeStorage = null;
+
+        np.getFreeStorage().then(function(data) {
+            freeStorage = data;
+
+            return np.getFreeMemory();
+        }).then(function(freeMemory) {
+            document.getElementById("status").innerText = `Stats for ${np.name} (V${np.version}): ${freeStorage} B free storage, ${freeMemory} B free memory`;
+
+            document.getElementById("screenshotOutput").setAttribute("src", screenshotUrl);
+
+            enable();
+        });
+    }).catch(function(error) {
+        console.error(error);
+
+        document.getElementById("status").innerText = "An error occurred! Try getting again";
+        enable();
+    });
+}
+
+function streamScreen() {
+    if (streamInterval != null) {
+        clearInterval(streamInterval);
+
+        streamInterval = null;
+        document.getElementById("streamScreenButton").innerText = "Stream screen";
+
+        setTimeout(function() {
+            document.getElementById("status").innerText = `Stream stopped`;
+        });
+
+        enable();
+
+        return;
+    }
+
+    document.getElementById("status").innerText = "Connecting...";
+    disable();
+
+    np.connect().then(function() {
+        document.getElementById("status").innerText = `Connected to ${np.name}, V${np.version}! Getting first frame...`;
+
+        streamInterval = setInterval(function() {
+            np.getScreenshot().then(function(data) {
+                if (data != null) {
+                    document.getElementById("status").innerText = `Connected to ${np.name}, V${np.version}! Stop streaming to do other stuff`;
+
+                    document.getElementById("screenshotOutput").setAttribute("src", data);
+                } else {
+                    document.getElementById("status").innerText = `Can't get frame right now (too busy), try sleeping your NanoPlay`;
+
+                    document.getElementById("screenshotOutput").setAttribute("src", "data:,");
+                }
+            });
+        }, 3000); // Decrease the timeout to practically DDoS your NanoPlay! 3 seconds is good enough for a responsive stream but without input lag
+
+        document.getElementById("streamScreenButton").innerText = "Stop streaming";
+        document.getElementById("streamScreenButton").disabled = false;
+    }).catch(function(error) {
+        console.error(error);
+
+        document.getElementById("status").innerText = "An error occurred! Try getting again";
+        enable();
     });
 }
 

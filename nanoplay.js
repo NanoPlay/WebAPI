@@ -181,5 +181,23 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                 `reset();`
             ].join(""));
         }
+
+        getFreeStorage() {
+            return this.connection.evaluate(`require("Storage").getFree()`);
+        }
+
+        getFreeMemory() {
+            // `process.memory().free` returns free memory in 20-byte chunks
+            return this.connection.evaluate(`process.memory().free`).then(function(data) {
+                return data * 20;
+            });
+        }
+
+        getScreenshot() {
+            // Resolved promise returns a data URL, or `null` if sleeping
+            return this.connection.evaluate(`g.asURL()`).then(function(data) {
+                return data != undefined ? data : null;
+            });
+        }
     };
 });

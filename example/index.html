@@ -15,9 +15,12 @@
         <button onclick="uploadTestApp();" id="uploadTestAppButton">Upload test app</button>
         <button onclick="removeTestApp();" id="removeTestAppButton">Remove test app</button>
         <button onclick="setSystemTime();" id="setSystemTimeButton">Set system time</button>
+        <button onclick="getSystemStatus();" id="systemStatusButton">Get system status</button>
+        <button onclick="streamScreen();" id="streamScreenButton">Stream screen</button>
         <br><br>
         <input type="file" id="updateInput"><button onclick="updateSystem();" id="updateButton">Apply update</button>
         <p id="status">Disconnected</p>
-        <button onclick="window.location.href = 'dashboard.html';" id="dashboardButton">Go to Dashboard</button>
+        <button onclick="window.location.href = 'dashboard.html';" id="dashboardButton">Go to Dashboard</button><br><br>
+        <img src="data:," alt="" style="width: 256px; image-rendering: pixelated;" id="screenshotOutput" />
     </body>
 </html>
