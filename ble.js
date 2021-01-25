@@ -45,7 +45,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
 
     exports.Connection = class {
         constructor() {
-            if (window.location.protocol != "https" && window.location.hostname != "localhost" && window.location.hostname != "127.0.0.1") {
+            if (window.location.protocol != "https:" && window.location.hostname != "localhost" && window.location.hostname != "127.0.0.1") {
                 throw new exports.SystemSupportError("Web Bluetooth can only be used in HTTPS contexts (or if the page is served as localhost)");
             }
 
