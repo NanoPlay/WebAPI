@@ -16,26 +16,25 @@ namespace("com.subnodal.nanoplay.webapi.safety", function(exports) {
     // __i = __iterationsMade
     // __l = __lastIteration
 
-    function __e(c) {
-        if (__i > 500 && new Date().getTime() - __l <= 3000) {
-            throw new Error("Too long without deferring");
-        } else if (__i > 500) {
-            __i = 0;
-            __l = new Date().getTime();
-        } else {
-            __i++;
-        }
-
-        return c;
-    }
-
     exports.makeSafe = function(code) {
         var codeToInject = `__e(__condition)`;
 
         code = `
             var __i = 0;
             var __l = new Date().getTime();
-        ` + __e.toString() + code;
+            function __e(c) {
+                if (__i > 500 && new Date().getTime() - __l <= 3000) {
+                    throw new Error("Too long without deferring");
+                } else if (__i > 500) {
+                    __i = 0;
+                    __l = new Date().getTime();
+                } else {
+                    __i++;
+                }
+        
+                return c;
+            }
+        ` + code;
 
         code = code
             .replace(/while\s*\((.*?)\)/g, `while (${codeToInject.replace("__condition", "$1")})`)
