@@ -139,12 +139,12 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
             var thisScope = this;
             var id = manifest.id || localAppName.replace(/\W/g, "").toLowerCase().substring(0, 20);
 
-            if (this.versionNumber != null && this.versionNumber < 2) {
-                throw new NotSupportedError("Please update your NanoPlay to V0.2.2 or later");
+            if (this.versionNumber != null && this.versionNumber < 5) {
+                throw new NotSupportedError("Please update your NanoPlay to V0.2.5 or later");
             }
 
             return minifier.minify(safety.makeSafe(code), {mangle: true}).then(function(minifiedResult) {
-                code = minifiedResult.code;
+                code = `var global,require,start,loop,_shouldClose=false,_showStatusBar=false;${minifiedResult.code};function _status(){return{_shouldClose:!!_shouldClose,_showStatusBar:!!_showStatusBar}};[start,loop,_status]`;
             
                 return thisScope.connection.communicate(";eval(\`" + [
                     `clearTimeout(require("main").rootScreenLoop);`,
