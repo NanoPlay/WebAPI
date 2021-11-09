@@ -94,11 +94,11 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                 promiseChain = promiseChain.then(function() {
                     var apps = {};
 
-                for (var i = 0; i < appList.length; i++) {
-                    apps[appList[i].id] = appList[i].manifest;
-                }
+                    for (var i = 0; i < appList.length; i++) {
+                        apps[appList[i].id] = appList[i].manifest;
+                    }
 
-                return apps;
+                    return apps;
                 });
 
                 return promiseChain;
