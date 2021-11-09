@@ -167,7 +167,7 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
                     `reset();`
                 ].join(""));
             }).then(function() {
-                return id;
+                return Promise.resolve(id);
             });
         }
 
@@ -196,7 +196,7 @@ namespace("com.subnodal.nanoplay.webapi", function(exports) {
         getScreenshot() {
             // Resolved promise returns a data URL, or `null` if sleeping
             return this.connection.evaluate(`g.asURL()`).then(function(data) {
-                return data != undefined ? data : null;
+                return Promise.resolve(data != undefined ? data : null);
             });
         }
     };

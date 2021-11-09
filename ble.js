@@ -32,7 +32,6 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
     }
 
     exports.SystemSupportError = class extends Error {};
-    exports.ConnectionError = class extends Error {};
 
     exports.QueuedData = class {
         constructor(data, promiseResolver) {
@@ -50,7 +49,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             }
 
             if (!exports.Connection.systemSupported()) {
-                throw new exports.SystemSupportError("Your system does not support Web Bluetooth");
+                throw new exports.SystemSupportError("This system does not support Web Bluetooth");
             }
 
             this.bleDevice = null;
@@ -74,75 +73,73 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
         connect() {
             var thisScope = this;
 
-            return new Promise(function(resolve, reject) {
-                navigator.bluetooth.requestDevice({
-                    filters: [
-                        {namePrefix: "NanoPlay "},
-                        {services: [BLE_SERVICE]}
-                    ],
-                    optionalServices: [BLE_SERVICE]
-                }).then(function(device) {
-                    thisScope.bleDevice = device;
+            return navigator.bluetooth.requestDevice({
+                filters: [
+                    {namePrefix: "NanoPlay "},
+                    {services: [BLE_SERVICE]}
+                ],
+                optionalServices: [BLE_SERVICE]
+            }).then(function(device) {
+                thisScope.bleDevice = device;
 
-                    device.addEventListener("gattserverdisconnected", function() {
-                        thisScope.disconnect();
-                    });
-    
-                    return device.gatt.connect();
-                }).then(function(server) {
-                    thisScope.bleServer = server;
-    
-                    return server.getPrimaryService(BLE_SERVICE);
-                }).then(function(service) {
-                    thisScope.bleService = service;
-    
-                    return service.getCharacteristic(BLE_RX);
-                }).then(function(characteristic) {
-                    thisScope.bleRxCharacteristic = characteristic;
-
-                    if (!characteristicValueChangeHandler) {
-                        characteristicValueChangeHandler = function(event) {
-                            var dataView = event.target.value;
-        
-                            for (var i = 0; i < dataView.length; i++) {
-                                var byte = dataView.getUint8(i);
-        
-                                if (byte == 0x11) { // XON
-                                    thisScope.bleFlowXoff = false;
-                                } else if (byte == 0x13) { // XOFF
-                                    thisScope.bleFlowXoff = true;
-                                }
-                            }
-        
-                            var dataString = arrayBufferToString(dataView.buffer);
-
-                            thisScope.rxData += dataString;
-                        }
-                    }
-
-                    thisScope.bleRxCharacteristic.removeEventListener("characteristicvaluechanged", characteristicValueChangeHandler);    
-                    thisScope.bleRxCharacteristic.addEventListener("characteristicvaluechanged", characteristicValueChangeHandler);
-    
-                    return characteristic.startNotifications();
-                }).then(function() {
-                    return thisScope.bleService.getCharacteristic(BLE_TX);
-                }).then(function(characteristic) {
-                    thisScope.bleTxCharacteristic = characteristic;
-                }).then(function() {
-                    thisScope.bleTxQueue = [];
-                    thisScope.isOpen = true;
-                    thisScope.isOpening = false;
-                    thisScope.isBusy = false;
-                    thisScope.txInProgress = false;
-
-                    thisScope.write();
-
-                    resolve();
-                }).catch(function(error) {
-                    reject(error);
-
+                device.addEventListener("gattserverdisconnected", function() {
                     thisScope.disconnect();
                 });
+
+                return device.gatt.connect();
+            }).then(function(server) {
+                thisScope.bleServer = server;
+
+                return server.getPrimaryService(BLE_SERVICE);
+            }).then(function(service) {
+                thisScope.bleService = service;
+
+                return service.getCharacteristic(BLE_RX);
+            }).then(function(characteristic) {
+                thisScope.bleRxCharacteristic = characteristic;
+
+                if (!characteristicValueChangeHandler) {
+                    characteristicValueChangeHandler = function(event) {
+                        var dataView = event.target.value;
+    
+                        for (var i = 0; i < dataView.length; i++) {
+                            var byte = dataView.getUint8(i);
+    
+                            if (byte == 0x11) { // XON
+                                thisScope.bleFlowXoff = false;
+                            } else if (byte == 0x13) { // XOFF
+                                thisScope.bleFlowXoff = true;
+                            }
+                        }
+    
+                        var dataString = arrayBufferToString(dataView.buffer);
+
+                        thisScope.rxData += dataString;
+                    }
+                }
+
+                thisScope.bleRxCharacteristic.removeEventListener("characteristicvaluechanged", characteristicValueChangeHandler);    
+                thisScope.bleRxCharacteristic.addEventListener("characteristicvaluechanged", characteristicValueChangeHandler);
+
+                return characteristic.startNotifications();
+            }).then(function() {
+                return thisScope.bleService.getCharacteristic(BLE_TX);
+            }).then(function(characteristic) {
+                thisScope.bleTxCharacteristic = characteristic;
+            }).then(function() {
+                thisScope.bleTxQueue = [];
+                thisScope.isOpen = true;
+                thisScope.isOpening = false;
+                thisScope.isBusy = false;
+                thisScope.txInProgress = false;
+
+                thisScope.write();
+
+                return Promise.resolve();
+            }).catch(function(error) {
+                thisScope.disconnect();
+
+                return Promise.reject(error);
             });
         }
 
@@ -229,7 +226,7 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             var thisScope = this;
 
             if (!this.isOpen) {
-                throw new exports.ConnectionError("Please connect to your NanoPlay first");
+                return Promise.reject({type: "connection", message: "Please connect to your NanoPlay first"});
             }
 
             return new Promise(function(resolve, reject) {
@@ -267,37 +264,35 @@ namespace("com.subnodal.nanoplay.webapi.ble", function(exports) {
             var thisScope = this;
 
             if (!this.isOpen) {
-                throw new exports.ConnectionError("Please connect to your NanoPlay first");
+                return Promise.reject({type: "connection", message: "Please connect to your NanoPlay first"});
             }
 
-            return new Promise(function(resolve, reject) {
-                thisScope.rxData = "";
+            thisScope.rxData = "";
 
-                thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
-                    try {
-                        var jsonData = "";
+            return thisScope.communicate(`;print(btoa(JSON.stringify(eval(atob(\`${btoa(expression)}\`)))))\n`, progressCallback).then(function(data) {
+                try {
+                    var jsonData = "";
 
-                        if (data.trim().split("\n").length > 1) {
-                            if (data.trim().split("\n")[0] == "") {
-                                data = data.trim().split("\n").slice(1).join("\n");
-                            }
-
-                            jsonData = atob(data.split("print(btoa(JSON.stringify(eval(atob(")[1].split("\n")[1].trim());
-                        } else {
-                            resolve(undefined);
-
-                            return;
+                    if (data.trim().split("\n").length > 1) {
+                        if (data.trim().split("\n")[0] == "") {
+                            data = data.trim().split("\n").slice(1).join("\n");
                         }
 
-                        if (jsonData == "undefined") {
-                            resolve(undefined);
-                        } else {
-                            resolve(JSON.parse(jsonData));
-                        }
-                    } catch (e) {
-                        console.warn(`Couldn't decode evaluated result: ${e}\nData: ${data.trim()}`);
+                        jsonData = atob(data.split("print(btoa(JSON.stringify(eval(atob(")[1].split("\n")[1].trim());
+                    } else {
+                        return Promise.resolve(undefined);
                     }
-                });
+
+                    if (jsonData == "undefined") {
+                        return Promise.resolve(undefined);
+                    } else {
+                        return Promise.resolve(JSON.parse(jsonData));
+                    }
+                } catch (e) {
+                    console.warn(`Couldn't decode evaluated result: ${e}\nData: ${data.trim()}`);
+
+                    return Promise.reject({type: "evaluation", message: "Couldn't decode evaluated result"});
+                }
             });
         }
     };
